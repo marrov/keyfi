@@ -6,7 +6,7 @@ A [Python 3](https://www.python.org/) project for the application and evaluation
 
 The `dimred` project aims to create a way of visualizing high-dimensional CFD data. In turbulent reacting flow simulations, the large number of intrinsic variables (three spatial coordinates and velocity components, temperature, pressure, chemical species...) and derived variables (i.e. equivalence ratio) make understanding the data and their relationship complex. This complexity can be seen from images like the one presented below, extracted from a 3D LES simulation.
 
-<img src="https://i.imgur.com/EO7hZpO.png" alt="Instantaneous view of the turbulent mixing and chemistry interaction in a jet in counterflow reactor for the oxidation of NOx by O3" width="600"/>)
+<img src="https://i.imgur.com/EO7hZpO.png" alt="Instantaneous view of the turbulent mixing and chemistry interaction in a jet in counterflow reactor for the oxidation of NOx by O3" width="800"/>
 
 State-of-the-art neighbour-graph-type dimensionality reduction techniques allow to reduce the noise in the data in order to focus on the relevant relationships that drive the underlying physics.
 
