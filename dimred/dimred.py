@@ -27,17 +27,13 @@ def clean_data(data: pd.DataFrame, dim: int = 2):
     '''    
     Removes ghost cells (if present) and other data columns that
     are not relevant for the dimensionality reduction (i.e. spatial 
-    coordinates) from the original data in place
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the dataset, use 2 for 2D-plane data and 3 
-        for 3D-volume data   
+    coordinates) from the original data in place 
     '''
-    if dim not in [2, 3]:
-        raise Exception(
-            'dim can only be 2 or 3. Use 2 for 2D-plane data and 3 for 3D-volume data')
+    #if dim not in [2, 3]:
+    #    raise Exception(
+    #        'dim can only be 2 or 3. Use 2 for 2D-plane data and 3 for 3D-volume data')
+
+    assert dim in [2, 3], 'dim can only be 2 or 3. Use 2 for 2D-plane data and 3 for 3D-volume data'
 
     cols_to_drop = ['XYZ:'+str(x) for x in range(3)]
     cols_to_drop.extend(['Phi', 'T'])
@@ -58,10 +54,13 @@ def scale_data(data: pd.DataFrame) -> np.ndarray:
     return scaled_data
 
 
-def embed_data(data: pd.DataFrame, scale: bool = True) -> np.ndarray:
+def embed_data(data: pd.DataFrame, scale: bool = True, deterministic: bool = False) -> np.ndarray:
     if scale:
         data = scale_data(data)
-    reducer = umap.UMAP(random_state=42)
+    if deterministic:
+        reducer = umap.UMAP(random_state=42)
+    elif not deterministic:
+        reducer = umap.UMAP()
     embedding = reducer.fit_transform(data)
     return embedding
 
