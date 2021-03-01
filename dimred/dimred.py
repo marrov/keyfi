@@ -3,15 +3,14 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
 from typing import Union, Sequence
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-import matplotlib
-matplotlib.rcParams['mathtext.fontset'] = 'stix'
-matplotlib.rcParams['font.family'] = 'STIXGeneral'
-
+rcParams['mathtext.fontset'] = 'stix'
+rcParams['font.family'] = 'STIXGeneral'
 Num = Union[int, float]
 
 
@@ -116,7 +115,7 @@ def main():
     clean_data(data, dim=2)
     embedding = embed_data(data, umap.UMAP, scale=True,
                            n_neighbors=20, min_dist=0.2)
-    plot_embedding(embedding, data=data, cmap_var='Phi', cmap_minmax=[0,10])
+    plot_embedding(embedding, data=data, cmap_var='Phi', cmap_minmax=[0,5])
 
 
 if __name__ == '__main__':
