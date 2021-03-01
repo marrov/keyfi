@@ -1,9 +1,10 @@
-name: dimred
+name: ml
 channels:
   - conda-forge
   - defaults
 dependencies:
-  - _libgcc_mutex=0.1=main
+  - _libgcc_mutex=0.1=conda_forge
+  - _openmp_mutex=4.5=1_gnu
   - _tflow_select=2.3.0=eigen
   - absl-py=0.11.0=pyhd3eb1b0_1
   - aiohttp=3.6.3=py38h7b6447c_0
@@ -66,6 +67,7 @@ dependencies:
   - gst-plugins-base=1.14.0=h8213a91_2
   - gstreamer=1.14.0=h28cd5cc_2
   - h5py=2.10.0=py38hd6299e0_1
+  - hdbscan=0.8.27=py38h5c078b8_0
   - hdf5=1.10.6=hb1b8bf9_0
   - heapdict=1.0.1=py_0
   - holoviews=1.14.1=pyhd3eb1b0_0
@@ -102,8 +104,9 @@ dependencies:
   - libdeflate=1.7=h27cfd23_5
   - libedit=3.1.20191231=h14c3975_1
   - libffi=3.3=he6710b0_2
-  - libgcc-ng=9.1.0=hdf63c60_0
+  - libgcc-ng=9.3.0=h2828fa1_18
   - libgfortran-ng=7.3.0=hdf63c60_0
+  - libgomp=9.3.0=h2828fa1_18
   - libiconv=1.16=h516909a_0
   - libllvm10=10.0.1=hbcb73fb_5
   - libpng=1.6.37=hbc83047_0
@@ -147,7 +150,7 @@ dependencies:
   - olefile=0.46=py_0
   - openh264=2.1.1=h8b12597_0
   - openjpeg=2.3.0=h05c96fa_1
-  - openssl=1.1.1j=h27cfd23_0
+  - openssl=1.1.1j=h7f98852_0
   - opt_einsum=3.1.0=py_0
   - packaging=20.9=pyhd3eb1b0_0
   - pandas=1.2.1=py38ha9443f7_0
@@ -242,3 +245,4 @@ dependencies:
   - zipp=3.4.0=pyhd3eb1b0_0
   - zlib=1.2.11=h7b6447c_3
   - zstd=1.4.5=h9ceee32_0
+prefix: /home/marc/miniconda3/envs/ml

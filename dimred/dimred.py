@@ -1,4 +1,5 @@
 import umap
+import hdbscan
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -6,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from typing import Union, Sequence
 from sklearn.manifold import TSNE
+from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
@@ -105,6 +107,7 @@ def plot_embedding(embedding: np.ndarray, data: pd.DataFrame = pd.DataFrame(), c
         cb.set_label(cmap_var, size=16)
     else:
         plt.scatter(embedding[:, 0], embedding[:, 1])
+
     plt.tight_layout()
     plt.show()
 
@@ -113,9 +116,24 @@ def main():
     path = 'data/LES/2D/toy.csv'
     data = import_csv_data(path)
     clean_data(data, dim=2)
-    embedding = embed_data(data, umap.UMAP, scale=True,
-                           n_neighbors=20, min_dist=0.2)
-    plot_embedding(embedding, data=data, cmap_var='Phi', cmap_minmax=[0,5])
+    embedding = embed_data(data, umap.UMAP, scale=True, n_neighbors=20, min_dist=0.2)
+    #plot_embedding(embedding, data=data, cmap_var='Phi', cmap_minmax=[0,5])
+    
+    #clusterer = hdbscan.HDBSCAN()
+    clusterer = KMeans(n_clusters=3, init='k-means++',
+                    max_iter=300, n_init=10)
+    clusterer.fit(embedding)
+
+    fig, ax = plt.subplots(figsize=[6, 5])
+    plt.gca().set_aspect('equal', 'datalim')
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
+    plt.scatter(embedding[:, 0], embedding[:, 1], c=clusterer.labels_, cmap='tab10')
+    cb = plt.colorbar()
+    cb.ax.tick_params(labelsize=16)
+    cb.set_label('Clusters', size=16)
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == '__main__':
