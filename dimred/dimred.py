@@ -2,23 +2,16 @@ import umap
 import hdbscan
 import numpy as np
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-from matplotlib import colors
-from matplotlib import rcParams
+import dimred.plot as plot
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
-from typing import Union, Sequence, Tuple
-
-rcParams['mathtext.fontset'] = 'stix'
-rcParams['font.family'] = 'STIXGeneral'
-Num = Union[int, float]
+from typing import Union, Sequence, Tuple, Type
 
 
 def import_csv_data(path: str = '') -> pd.DataFrame:
     '''
-    Creates a pandas dataframe from the path to a csv data file.
+    Creates a pandas dataframe from path to a csv data file.
     '''
     if not path:
         path = input('Enter the path of your csv data file: ')
@@ -57,7 +50,7 @@ def scale_data(data: pd.DataFrame) -> np.ndarray:
     return scaled_data
 
 
-def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, **params) -> np.ndarray:
+def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, **params) -> Tuple[np.ndarray, Type]:
     '''
     Applies either UMAP or t-SNE dimensionality reduction algorithm 
     to the input data (with optional scaling) and returns the
@@ -73,75 +66,16 @@ def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, **params) -> n
         data = scale_data(data)
 
     reducer = algorithm(**params)
-    embedding = reducer.fit_transform(data)
-    return embedding
-
-
-def plot_embedding(embedding: np.ndarray, data: pd.DataFrame = pd.DataFrame(), cmap_var: str = None, cmap_minmax: Sequence[Num] = list()):
-    '''
-    Plots input embedding as a scatter plot. Optionally, a variable
-    with an optional range can be supplied to use as the colormap.
-    '''
-    if cmap_var not in data.columns and cmap_var:
-        raise ValueError(
-            'invalid variable for the color map. Expected one of: %s' % data.columns)
-
-    if len(cmap_minmax) != 2 and cmap_minmax:
-        raise ValueError(
-            'too many values to unpack. Expected 2')
-
-    fig, ax = plt.subplots(figsize=[6, 5])
-    plt.gca().set_aspect('equal', 'datalim')
-    plt.xticks(fontsize=16)
-    plt.yticks(fontsize=16)
-
-    if cmap_var:
-        if cmap_minmax:
-            plt.scatter(embedding[:, 0], embedding[:, 1], c=data[cmap_var],
-                        vmin=cmap_minmax[0], vmax=cmap_minmax[1], cmap='inferno')
-        else:
-            plt.scatter(embedding[:, 0], embedding[:, 1],
-                        c=data[cmap_var], cmap='inferno')
-        cb = plt.colorbar()
-        cb.ax.tick_params(labelsize=16)
-        cb.set_label(cmap_var, size=16)
-    else:
-        plt.scatter(embedding[:, 0], embedding[:, 1])
-
-    plt.tight_layout()
-    plt.show()
-
-
-def set_cmap(n_clusters: int) -> Tuple[colors.ListedColormap, colors.BoundaryNorm]:
-    cmap_orig = plt.cm.get_cmap('tab10')
-    cmap = colors.ListedColormap(cmap_orig.colors[0:n_clusters])
-    norm = colors.BoundaryNorm(np.arange(-0.5, n_clusters), n_clusters)
-    return cmap, norm
-
-
-def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, n_clusters: int):
-    
-    cmap, norm = set_cmap(n_clusters)
-
-    fig, ax = plt.subplots(figsize=[6, 5])
-    plt.gca().set_aspect('equal', 'datalim')
-    plt.xticks(fontsize=16)
-    plt.yticks(fontsize=16)
-    plt.scatter(embedding[:, 0], embedding[:, 1],
-                c=cluster_labels, cmap=cmap, norm=norm)
-    cb = plt.colorbar(ticks=np.arange(n_clusters))
-    cb.ax.tick_params(labelsize=16)
-    cb.set_label('Clusters', size=16)
-    plt.show()
-
+    mapper = reducer.fit(data)
+    embedding = mapper.transform(data)
+    return embedding, mapper
 
 
 def main():
     path = 'data/LES/2D/toy.csv'
     data = import_csv_data(path)
     clean_data(data, dim=2)
-    embedding = embed_data(data, umap.UMAP, scale=True,
-                           n_neighbors=20, min_dist=0.2)
+    embedding, mapper = embed_data(data, umap.UMAP, scale=True, n_neighbors=20, min_dist=0.2)
     #plot_embedding(embedding, data=data, cmap_var='Phi', cmap_minmax=[0,5])
 
     #clusterer = hdbscan.HDBSCAN()
@@ -149,7 +83,8 @@ def main():
     clusterer = KMeans(n_clusters=n_clusters, init='k-means++',
                        max_iter=300, n_init=10)
     clusterer.fit(embedding)
-    plot_clustering(embedding, clusterer.labels_, n_clusters)
+    plot.plot_clustering(embedding=embedding, cluster_labels=clusterer.labels_, use_legend=True, scale_points=True)
+    #plot.plot.points(mapper, labels=clusterer.labels_)
 
 if __name__ == '__main__':
     main()
