@@ -1,7 +1,9 @@
 import umap.plot
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
+
 from matplotlib import colors
 from matplotlib import rcParams
 from matplotlib.patches import Patch
@@ -24,7 +26,7 @@ def _set_colors(n_clusters: int) -> Tuple[colors.ListedColormap, colors.Boundary
     cmap_orig = plt.cm.get_cmap('tab10')
     if n_clusters > cmap_orig.N:
         raise ValueError(
-            'number of clusters cannot be higher than number of available colors.')
+            f'number of clusters ({n_clusters}) cannot be higher than number of available colors ({cmap_orig.N}).')
     cmap = colors.ListedColormap(cmap_orig.colors[0:n_clusters])
     norm = colors.BoundaryNorm(np.arange(-0.5, n_clusters), n_clusters)
     return cmap, norm
@@ -51,7 +53,12 @@ def _remove_axes(ax: plt.Subplot):
     ax.tick_params(left=False, bottom=False)
 
 
-def plot_embedding(embedding: np.ndarray, data: pd.DataFrame = pd.DataFrame(), cmap_var: str = None, cmap_minmax: Sequence[Num] = list()):
+def _set_point_size(points: np.ndarray) -> np.ndarray:
+    point_size = 100.0 / np.sqrt(points.shape[0])
+    return point_size
+
+
+def plot_embedding(embedding: np.ndarray, data: pd.DataFrame = pd.DataFrame(), scale_points: bool = True, cmap_var: str = None, cmap_minmax: Sequence[Num] = list()):
     '''
     Plots input embedding as a scatter plot. Optionally, a variable
     with an optional range can be supplied for use in the colormap.
@@ -66,32 +73,37 @@ def plot_embedding(embedding: np.ndarray, data: pd.DataFrame = pd.DataFrame(), c
 
     fig, ax = _set_plot_settings()
 
+    if scale_points:
+        point_size = _set_point_size(embedding)
+    else:
+        point_size = None
+
     if cmap_var:
         if cmap_minmax:
-            plt.scatter(embedding[:, 0], embedding[:, 1], c=data[cmap_var],
-                        vmin=cmap_minmax[0], vmax=cmap_minmax[1], cmap='inferno')
+            plt.scatter(*embedding.T, s=point_size,
+                        c=data[cmap_var],  vmin=cmap_minmax[0], vmax=cmap_minmax[1], cmap='inferno')
         else:
-            plt.scatter(embedding[:, 0], embedding[:, 1],
-                        c=data[cmap_var], cmap='inferno')
+            plt.scatter(*embedding.T, c=data[cmap_var], cmap='inferno')
         _set_colorbar(label=cmap_var)
     else:
-        plt.scatter(embedding[:, 0], embedding[:, 1])
+        plt.scatter(*embedding.T)
 
     _remove_axes(ax)
     plt.tight_layout()
     plt.show()
 
 
-def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, use_legend: bool = True, scale_points: bool = True):
+def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_points: bool = True, use_legend: bool = True):
     fig, ax = _set_plot_settings()
     n_clusters = np.size(np.unique(cluster_labels))
     cmap, norm = _set_colors(n_clusters)
 
-    point_size = {}
     if scale_points:
-        point_size = 100.0 / np.sqrt(embedding.shape[0])
+        point_size = _set_point_size(embedding)
+    else:
+        point_size = None
 
-    plt.scatter(embedding[:, 0], embedding[:, 1], s=point_size,
+    plt.scatter(*embedding.T, s=point_size,
                 c=cluster_labels, cmap=cmap, norm=norm)
 
     if use_legend:

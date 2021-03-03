@@ -1,8 +1,11 @@
+from dimred.plot import plot_embedding, plot_clustering, umap_plot
+from dimred.cluster import cluster_embedding, show_condensed_tree
+
 import umap
 import hdbscan
 import numpy as np
 import pandas as pd
-import dimred.plot as plot
+
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
@@ -66,25 +69,67 @@ def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, **params) -> T
         data = scale_data(data)
 
     reducer = algorithm(**params)
-    mapper = reducer.fit(data)
-    embedding = mapper.transform(data)
+
+    if algorithm == umap.UMAP:
+        mapper = reducer.fit(data)
+        embedding = mapper.transform(data)
+    elif algorithm == TSNE:
+        mapper = None
+        embedding = reducer.fit_transform(data)
+
     return embedding, mapper
 
 
 def main():
-    path = 'data/LES/2D/toy.csv'
-    data = import_csv_data(path)
-    clean_data(data, dim=2)
-    embedding, mapper = embed_data(data, umap.UMAP, scale=True, n_neighbors=20, min_dist=0.2)
-    #plot_embedding(embedding, data=data, cmap_var='Phi', cmap_minmax=[0,5])
 
-    #clusterer = hdbscan.HDBSCAN()
-    n_clusters = 3
-    clusterer = KMeans(n_clusters=n_clusters, init='k-means++',
-                       max_iter=300, n_init=10)
-    clusterer.fit(embedding)
-    plot.plot_clustering(embedding=embedding, cluster_labels=clusterer.labels_, use_legend=True, scale_points=True)
-    #plot.plot.points(mapper, labels=clusterer.labels_)
+    path = '/home/marc/marrs/python/dimred/data/LES/2D/toy.csv'
+
+    data = import_csv_data(path)
+
+    clean_data(data, dim=2)
+
+    embedding, mapper = embed_data(
+        data=data,
+        algorithm=umap.UMAP,
+        scale=True,
+        n_neighbors=20,
+        min_dist=0.2,
+    )
+
+    clusterer = cluster_embedding(
+        embedding=embedding,
+        algorithm=hdbscan.HDBSCAN,
+        min_cluster_size=25
+    )
+
+    plot_clustering(
+        embedding=embedding,
+        cluster_labels=clusterer.labels_,
+        use_legend=True
+    )
+
+    show_condensed_tree(
+        clusterer,
+        select_clusters=True,
+        label_clusters=True,
+        log_size=True
+    )
+
+    # Useful code:
+    #
+    # plot_embedding(embedding=embedding, data=data, scale_points=True, cmap_var='Phi', cmap_minmax=[0, 5])
+    #
+    # clusterer = clustering(
+    #    embedding=embedding,
+    #    algorithm=KMeans,
+    #    n_clusters=3,
+    #    init='k-means++',
+    #    max_iter=300,
+    #    n_init=10
+    #    )
+    #
+    #umap_plot(mapper, labels=clusterer.labels_)
+
 
 if __name__ == '__main__':
     main()
