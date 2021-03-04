@@ -82,7 +82,7 @@ def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, **params) -> T
 
 def main():
 
-    path = '/home/marc/marrs/python/dimred/data/LES/2D/toy.csv'
+    path = 'dimred/data/LES/2D/toy.csv'
 
     data = import_csv_data(path)
 
@@ -108,13 +108,6 @@ def main():
         use_legend=True
     )
 
-    show_condensed_tree(
-        clusterer,
-        select_clusters=True,
-        label_clusters=True,
-        log_size=True
-    )
-
     # Useful code:
     #
     # plot_embedding(embedding=embedding, data=data, scale_points=True, cmap_var='Phi', cmap_minmax=[0, 5])
@@ -128,7 +121,14 @@ def main():
     #    n_init=10
     #    )
     #
-    #umap_plot(mapper, labels=clusterer.labels_)
+    # umap_plot(mapper, labels=clusterer.labels_)
+    #
+    # show_condensed_tree(
+    #     clusterer,
+    #     select_clusters=True,
+    #     label_clusters=True,
+    #     log_size=True
+    # )
 
 
 if __name__ == '__main__':
