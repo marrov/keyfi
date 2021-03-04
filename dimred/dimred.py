@@ -1,6 +1,7 @@
 from dimred.plot import plot_embedding, plot_clustering, umap_plot
 from dimred.cluster import cluster_embedding, show_condensed_tree
 
+import time
 import umap
 import hdbscan
 import numpy as np
@@ -82,6 +83,11 @@ def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, **params) -> T
 
 def main():
 
+
+    start_time = time.time()
+
+    print('Running dimred...\n')
+
     path = 'data/LES/2D/toy.csv'
 
     data = import_csv_data(path)
@@ -101,6 +107,8 @@ def main():
         algorithm=hdbscan.HDBSCAN,
         min_cluster_size=25
     )
+
+    print('Executed in %.2f seconds.' % (time.time() - start_time))
 
     plot_clustering(
         embedding=embedding,
