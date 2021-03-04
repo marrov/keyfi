@@ -82,7 +82,7 @@ def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, **params) -> T
 
 def main():
 
-    path = 'dimred/data/LES/2D/toy.csv'
+    path = 'data/LES/2D/toy.csv'
 
     data = import_csv_data(path)
 
