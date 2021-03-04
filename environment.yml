@@ -1,4 +1,4 @@
-name: ml
+name: dimred
 channels:
   - conda-forge
   - defaults
