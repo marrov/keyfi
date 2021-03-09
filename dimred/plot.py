@@ -1,3 +1,4 @@
+import warnings
 import umap.plot
 import numpy as np
 import pandas as pd
@@ -23,11 +24,7 @@ def _set_plot_settings() -> Tuple[plt.Figure, plt.Subplot]:
 
 
 def _set_colors(n_clusters: int) -> Tuple[colors.ListedColormap, colors.BoundaryNorm]:
-    cmap_orig = plt.cm.get_cmap('tab10')
-    if n_clusters > cmap_orig.N:
-        raise ValueError(
-            f'number of clusters ({n_clusters}) cannot be higher than number of available colors ({cmap_orig.N}).')
-    cmap = colors.ListedColormap(cmap_orig.colors[0:n_clusters])
+    cmap = colors.ListedColormap(tuple(sns.color_palette("husl", n_clusters)))
     norm = colors.BoundaryNorm(np.arange(-0.5, n_clusters), n_clusters)
     return cmap, norm
 
@@ -42,8 +39,8 @@ def _set_legend(labels: np.ndarray, cmap: colors.ListedColormap, ax: plt.Subplot
     unique_labels = np.unique(labels)
     legend_elements = [Patch(facecolor=cmap.colors[i], label=unique_label)
                        for i, unique_label in enumerate(unique_labels)]
-    legend = ax.legend(handles=legend_elements, title='Clusters', fontsize=16,
-                       title_fontsize=16, loc="upper right")
+    legend = ax.legend(handles=legend_elements, title='Clusters', fontsize=14,
+                       title_fontsize=14, loc="upper right")
     legend.get_frame().set_alpha(None)
     legend.get_frame().set_facecolor((1, 1, 1, 0.25))
 
@@ -93,9 +90,14 @@ def plot_embedding(embedding: np.ndarray, data: pd.DataFrame = pd.DataFrame(), s
     plt.show()
 
 
-def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_points: bool = True, use_legend: bool = True):
+def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_points: bool = True):
     fig, ax = _set_plot_settings()
     n_clusters = np.size(np.unique(cluster_labels))
+
+    if n_clusters > 30:
+        warnings.warn(
+            'Number of clusters (%s) too large, clustering visualization will be poor' % n_clusters)
+
     cmap, norm = _set_colors(n_clusters)
 
     if scale_points:
@@ -106,7 +108,7 @@ def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_poi
     plt.scatter(*embedding.T, s=point_size,
                 c=cluster_labels, cmap=cmap, norm=norm)
 
-    if use_legend:
+    if n_clusters <= 10:
         _set_legend(labels=cluster_labels, cmap=cmap, ax=ax)
     else:
         _set_colorbar(label='Clusters', ticks=np.arange(n_clusters))

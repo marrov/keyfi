@@ -86,7 +86,7 @@ def main():
 
     start_time = time.time()
 
-    print('Running dimred...\n')
+    print('Running dimred...')
 
     path = 'data/LES/2D/toy.csv'
 
@@ -105,15 +105,14 @@ def main():
     clusterer = cluster_embedding(
         embedding=embedding,
         algorithm=hdbscan.HDBSCAN,
-        min_cluster_size=25
+        min_cluster_size=20
     )
 
     print('Executed in %.2f seconds.' % (time.time() - start_time))
 
     plot_clustering(
         embedding=embedding,
-        cluster_labels=clusterer.labels_,
-        use_legend=True
+        cluster_labels=clusterer.labels_
     )
 
     # Useful code:
