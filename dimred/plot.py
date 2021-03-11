@@ -1,3 +1,4 @@
+import hdbscan
 import warnings
 import umap.plot
 import numpy as np
@@ -24,7 +25,7 @@ def _set_plot_settings() -> Tuple[plt.Figure, plt.Subplot]:
 
 
 def _set_colors(n_clusters: int) -> Tuple[colors.ListedColormap, colors.BoundaryNorm]:
-    cmap = colors.ListedColormap(tuple(sns.color_palette("husl", n_clusters)))
+    cmap = colors.ListedColormap(tuple(sns.color_palette('husl', n_clusters)))
     norm = colors.BoundaryNorm(np.arange(-0.5, n_clusters), n_clusters)
     return cmap, norm
 
@@ -53,6 +54,21 @@ def _remove_axes(ax: plt.Subplot):
 def _set_point_size(points: np.ndarray) -> np.ndarray:
     point_size = 100.0 / np.sqrt(points.shape[0])
     return point_size
+
+
+def _set_cluster_member_colors(clusterer: hdbscan.HDBSCAN):
+    n_clusters = np.size(np.unique(clusterer.labels_))
+    if -1 in np.unique(clusterer.labels_):
+        color_palette = sns.color_palette('husl', n_clusters-1)
+    else:
+        color_palette = sns.color_palette('husl', n_clusters)
+    cluster_colors = [color_palette[x] if x >= 0
+                      else (0.5, 0.5, 0.5)
+                      for x in clusterer.labels_]
+    cluster_member_colors = [sns.desaturate(x, p)
+                             for x, p
+                             in zip(cluster_colors, clusterer.probabilities_)]
+    return cluster_member_colors, color_palette
 
 
 def plot_embedding(embedding: np.ndarray, data: pd.DataFrame = pd.DataFrame(), scale_points: bool = True, cmap_var: str = None, cmap_minmax: Sequence[Num] = list()):
@@ -112,6 +128,28 @@ def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_poi
         _set_legend(labels=cluster_labels, cmap=cmap, ax=ax)
     else:
         _set_colorbar(label='Clusters', ticks=np.arange(n_clusters))
+    _remove_axes(ax)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_cluster_membership(embedding: np.ndarray, clusterer: hdbscan.HDBSCAN, legend: bool = True):
+    fig, ax = _set_plot_settings()
+
+    cluster_member_colors, color_palette = _set_cluster_member_colors(
+        clusterer)
+
+    plt.scatter(*embedding.T, s=20, linewidth=0,
+                c=cluster_member_colors, alpha=0.5)
+
+    if legend:
+        if -1 in np.unique(clusterer.labels_):
+            unique_colors = ((0.5, 0.5, 0.5), *tuple(color_palette))
+        else:
+            unique_colors = tuple(color_palette)
+        cmap = colors.ListedColormap(unique_colors)
+        _set_legend(labels=clusterer.labels_, cmap=cmap, ax=ax)
+
     _remove_axes(ax)
     plt.tight_layout()
     plt.show()
