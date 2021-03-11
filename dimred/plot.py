@@ -124,7 +124,7 @@ def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_poi
     plt.scatter(*embedding.T, s=point_size,
                 c=cluster_labels, cmap=cmap, norm=norm)
 
-    if n_clusters <= 10:
+    if n_clusters <= 12:
         _set_legend(labels=cluster_labels, cmap=cmap, ax=ax)
     else:
         _set_colorbar(label='Clusters', ticks=np.arange(n_clusters))
@@ -133,13 +133,18 @@ def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_poi
     plt.show()
 
 
-def plot_cluster_membership(embedding: np.ndarray, clusterer: hdbscan.HDBSCAN, legend: bool = True):
+def plot_cluster_membership(embedding: np.ndarray, clusterer: hdbscan.HDBSCAN, scale_points: bool = True, legend: bool = True, save: bool = False, figname: str = None, figpath: str = None):
     fig, ax = _set_plot_settings()
 
     cluster_member_colors, color_palette = _set_cluster_member_colors(
         clusterer)
 
-    plt.scatter(*embedding.T, s=20, linewidth=0,
+    if scale_points:
+        point_size = 5*_set_point_size(embedding)
+    else:
+        point_size = 20
+
+    plt.scatter(*embedding.T, s=point_size, linewidth=0,
                 c=cluster_member_colors, alpha=0.5)
 
     if legend:
@@ -152,7 +157,11 @@ def plot_cluster_membership(embedding: np.ndarray, clusterer: hdbscan.HDBSCAN, l
 
     _remove_axes(ax)
     plt.tight_layout()
-    plt.show()
+
+    if save:
+        plt.savefig(figpath+figname+'.png')
+    else:
+        plt.show()
 
 
 def umap_plot(mapper: Type, **kwargs):

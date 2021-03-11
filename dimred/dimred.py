@@ -98,19 +98,19 @@ def main():
     import_time = time.time()
     print('Imported data in %.2f seconds.' % (import_time - start_time))
 
-    cleaned_data = clean_data(data, dim=2, vars_to_drop = ['U:2'])
+    cleaned_data = clean_data(data, dim=2, vars_to_drop = ['T', 'U:0', 'U:1', 'U:2'])
 
     clean_time = time.time()
     print('Cleaned data in %.2f seconds.' % (clean_time - import_time))
 
     embedding, mapper = embed_data(
-        #data=data,
+        #data=cleaned_data,
         #algorithm=umap.UMAP,
         #scale=True,
         #n_neighbors=20,
         #min_dist=0.2,
 
-        data=data,
+        data=cleaned_data,
         algorithm=TSNE,
         scale=True,
 
@@ -123,7 +123,7 @@ def main():
     clusterer = cluster_embedding(
         embedding=embedding,
         algorithm=hdbscan.HDBSCAN,
-        min_cluster_size=25
+        min_cluster_size=100
         
         #embedding=embedding,
         #algorithm=KMeans,
@@ -138,7 +138,7 @@ def main():
 
     print('Total executtion time: %.2f seconds.' % (time.time() - start_time))
 
-    plot_cluster_membership(embedding, clusterer)
+    plot_cluster_membership(embedding=embedding, clusterer=clusterer, save=False, figname='test', figpath='../dimred_figs/')
 
     # Useful code:
     #
