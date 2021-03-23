@@ -104,17 +104,16 @@ def main():
     print('Cleaned data in %.2f seconds.' % (clean_time - import_time))
 
     embedding, mapper = embed_data(
-        #data=cleaned_data,
-        #algorithm=umap.UMAP,
-        #scale=True,
-        #n_neighbors=20,
-        #min_dist=0.2,
-
         data=cleaned_data,
-        algorithm=TSNE,
+        algorithm=umap.UMAP,
         scale=True,
+        n_neighbors=20,
+        min_dist=0.2,
 
-
+        #data=cleaned_data,
+        #algorithm=TSNE,
+        #scale=True,
+        #perplexity=40
     )
 
     embedding_time = time.time()
@@ -123,7 +122,7 @@ def main():
     clusterer = cluster_embedding(
         embedding=embedding,
         algorithm=hdbscan.HDBSCAN,
-        min_cluster_size=100
+        min_cluster_size=50
         
         #embedding=embedding,
         #algorithm=KMeans,

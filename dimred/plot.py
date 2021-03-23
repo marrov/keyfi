@@ -71,7 +71,7 @@ def _set_cluster_member_colors(clusterer: hdbscan.HDBSCAN):
     return cluster_member_colors, color_palette
 
 
-def plot_embedding(embedding: np.ndarray, data: pd.DataFrame = pd.DataFrame(), scale_points: bool = True, cmap_var: str = None, cmap_minmax: Sequence[Num] = list()):
+def plot_embedding(embedding: np.ndarray, data: pd.DataFrame = pd.DataFrame(), scale_points: bool = True, cmap_var: str = None, cmap_minmax: Sequence[Num] = list(), save: bool = False, figname: str = None, figpath: str = None):
     '''
     Plots input embedding as a scatter plot. Optionally, a variable
     with an optional range can be supplied for use in the colormap.
@@ -93,20 +93,23 @@ def plot_embedding(embedding: np.ndarray, data: pd.DataFrame = pd.DataFrame(), s
 
     if cmap_var:
         if cmap_minmax:
-            plt.scatter(*embedding.T, s=point_size,
-                        c=data[cmap_var],  vmin=cmap_minmax[0], vmax=cmap_minmax[1], cmap='inferno')
+            plt.scatter(*embedding.T, s=point_size, c=data[cmap_var],  vmin=cmap_minmax[0], vmax=cmap_minmax[1], cmap='inferno')
         else:
-            plt.scatter(*embedding.T, c=data[cmap_var], cmap='inferno')
+            plt.scatter(*embedding.T, s=point_size, c=data[cmap_var], cmap='inferno')
         _set_colorbar(label=cmap_var)
     else:
-        plt.scatter(*embedding.T)
+        plt.scatter(*embedding.T, s=point_size)
 
     _remove_axes(ax)
     plt.tight_layout()
-    plt.show()
+
+    if save:
+        plt.savefig(figpath+figname+'.png')
+    else:
+        plt.show()
 
 
-def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_points: bool = True):
+def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_points: bool = True, save: bool = False, figname: str = None, figpath: str = None):
     fig, ax = _set_plot_settings()
     n_clusters = np.size(np.unique(cluster_labels))
 
@@ -128,9 +131,14 @@ def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_poi
         _set_legend(labels=cluster_labels, cmap=cmap, ax=ax)
     else:
         _set_colorbar(label='Clusters', ticks=np.arange(n_clusters))
+    
     _remove_axes(ax)
     plt.tight_layout()
-    plt.show()
+
+    if save:
+        plt.savefig(figpath+figname+'.png')
+    else:
+        plt.show()
 
 
 def plot_cluster_membership(embedding: np.ndarray, clusterer: hdbscan.HDBSCAN, scale_points: bool = True, legend: bool = True, save: bool = False, figname: str = None, figpath: str = None):
@@ -164,6 +172,10 @@ def plot_cluster_membership(embedding: np.ndarray, clusterer: hdbscan.HDBSCAN, s
         plt.show()
 
 
-def umap_plot(mapper: Type, **kwargs):
+def umap_plot(mapper: Type, save: bool = False, figname: str = None, figpath: str = None, **kwargs):
     umap.plot.points(mapper, **kwargs)
-    plt.show()
+    
+    if save:
+        plt.savefig(figpath+figname+'.png')
+    else:
+        plt.show()
