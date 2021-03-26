@@ -21,7 +21,7 @@ def run_UMAP(data, figname, **params):
 
 
 if __name__ == '__main__':
-    path_input = '../../data/input/2D_848_140_bin.vtk'
+    path_input = '../../data/input/2D_848_140.vtk'
     data, _ = import_vtk_data(path_input)
 
     floats_array = np.logspace(1, 4, 1)
