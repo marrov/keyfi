@@ -42,14 +42,14 @@ def import_vtk_data(path: str = '') -> pd.DataFrame:
     return df, mesh
 
 
-def export_vtk_data(mesh: Type, path: str = '', cluster_labels: np.ndarray = None)
+def export_vtk_data(mesh: Type, path: str = '', cluster_labels: np.ndarray = None):
     '''
     Exports vtk file with mesh. If cluster labels are passed it
     will include them in a new variable
     '''
     if cluster_labels is not None:
         mesh['clusters'] = cluster_labels
-    mesh.save(path_output)
+    mesh.save(path)
 
 def clean_data(data: pd.DataFrame, dim: int = 2, vars_to_drop: Sequence[str] = None) -> pd.DataFrame:
     '''    
@@ -123,8 +123,8 @@ def main():
 
     print('Running dimred...')
 
-    path_input = 'data/input/2D_212_35_bin.vtk'
-    path_output = 'data/output/2D_212_35.vtk'
+    path_input = 'data/input/2D_848_140_bin.vtk'
+    path_output = 'data/output/2D_848_140.vtk'
 
     data, mesh = import_vtk_data(path_input)
 
@@ -140,8 +140,8 @@ def main():
         data=cleaned_data,
         algorithm=umap.UMAP,
         scale=False,
-        n_neighbors=30,
-        min_dist=0.25,
+        n_neighbors=100,
+        min_dist=0.3,
     )
 
     embedding_time = time.time()
@@ -150,7 +150,7 @@ def main():
     clusterer = cluster_embedding(
         embedding=embedding,
         algorithm=hdbscan.HDBSCAN,
-        min_cluster_size=100
+        min_cluster_size=60
     )
     
     clustering_time = time.time()
