@@ -1,18 +1,19 @@
 # Add to path so that dimred is visible to this script
-from dimred.dimred import *
 import sys
 sys.path.append('../../')
 
 # Import local functions from dimred
+from dimred.dimred import *
+
 
 def run_UMAP(data, figname, **params):
     cleaned_data = clean_data(data, dim=2, vars_to_drop=[
-                              'T', 'U:0', 'U:1', 'U:2'])
+                              'T'])
 
     embedding, mapper = embed_data(
         data=cleaned_data,
         algorithm=umap.UMAP,
-        scale=False,
+        scale=True,
         **params
     )
 
@@ -30,7 +31,7 @@ def run_UMAP(data, figname, **params):
 
 
 if __name__ == '__main__':
-    path = '../../data/LES/2D/2D_212_35.csv'
+    path = '../../data/input/2D_212_35.csv'
     data = import_csv_data(path)
 
     floats_array = np.logspace(0.3, 2.7, 20)
