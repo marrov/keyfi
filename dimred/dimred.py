@@ -6,6 +6,7 @@ import umap
 import hdbscan
 import numpy as np
 import pandas as pd
+import pyvista as pv
 
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
@@ -22,6 +23,34 @@ def import_csv_data(path: str = '') -> pd.DataFrame:
     return pd.read_csv(path)
 
 
+def import_vtk_data(path: str = '') -> pd.DataFrame:
+    '''
+    Creates a pandas dataframe from path to a vtk data file.
+    Also returns mesh pyvista object.
+    '''
+    if not path:
+        path = input('Enter the path of your csv data file: ')
+
+    mesh = pv.read(path)
+    # Include undesired variables and vectors
+    var_names_to_drop = ['U', 'vtkGhostType']
+    var_names = [name for name in mesh.array_names if name not in var_names_to_drop]
+    var_arrays = np.transpose([mesh.get_array(var_name) for var_name in var_names])
+    df = pd.DataFrame(var_arrays, columns=var_names)
+    # Add the velocity back with one row per component
+    df[['U:0', 'U:1', 'U:2']] = mesh.get_array('U')
+    return df, mesh
+
+
+def export_vtk_data(mesh: Type, path: str = '', cluster_labels: np.ndarray = None)
+    '''
+    Exports vtk file with mesh. If cluster labels are passed it
+    will include them in a new variable
+    '''
+    if cluster_labels is not None:
+        mesh['clusters'] = cluster_labels
+    mesh.save(path_output)
+
 def clean_data(data: pd.DataFrame, dim: int = 2, vars_to_drop: Sequence[str] = None) -> pd.DataFrame:
     '''    
     Removes ghost cells (if present) and other data columns that
@@ -32,7 +61,10 @@ def clean_data(data: pd.DataFrame, dim: int = 2, vars_to_drop: Sequence[str] = N
         raise ValueError(
             'dim can only be 2 or 3. Use 2 for 2D-plane data and 3 for 3D-volume data')
 
-    cols_to_drop = ['Points:'+str(x) for x in range(3)]
+    cols_to_drop = []
+
+    if 'Points:0' in data.columns:
+        cols_to_drop.append(['Points:0', 'Points:1', 'Points:2'])
 
     if 'vtkGhostType' in data.columns:
         data.drop(data[data.vtkGhostType == 2].index, inplace=True)
@@ -91,14 +123,15 @@ def main():
 
     print('Running dimred...')
 
-    path = 'data/LES/2D/2D_212_35.csv'
+    path_input = 'data/input/2D_212_35_bin.vtk'
+    path_output = 'data/output/2D_212_35.vtk'
 
-    data = import_csv_data(path)
+    data, mesh = import_vtk_data(path_input)
 
     import_time = time.time()
     print('Imported data in %.2f seconds.' % (import_time - start_time))
 
-    cleaned_data = clean_data(data, dim=2, vars_to_drop = ['T', 'U:0', 'U:1', 'U:2'])
+    cleaned_data = clean_data(data, dim=2, vars_to_drop=['U:0', 'U:1', 'U:2'])
 
     clean_time = time.time()
     print('Cleaned data in %.2f seconds.' % (clean_time - import_time))
@@ -106,46 +139,43 @@ def main():
     embedding, mapper = embed_data(
         data=cleaned_data,
         algorithm=umap.UMAP,
-        scale=True,
-        n_neighbors=20,
-        min_dist=0.2,
-
-        #data=cleaned_data,
-        #algorithm=TSNE,
-        #scale=True,
-        #perplexity=40
+        scale=False,
+        n_neighbors=30,
+        min_dist=0.25,
     )
 
     embedding_time = time.time()
     print('Computed embedding in %.2f seconds.' % (embedding_time - clean_time))
-
+    
     clusterer = cluster_embedding(
         embedding=embedding,
         algorithm=hdbscan.HDBSCAN,
-        min_cluster_size=50
-        
-        #embedding=embedding,
-        #algorithm=KMeans,
-        #n_clusters=5,
-        #init='k-means++',
-        #max_iter=300,
-        #n_init=10
+        min_cluster_size=100
     )
-
+    
     clustering_time = time.time()
     print('Computed clustering in data in %.2f seconds.' % (clustering_time - embedding_time))
-
+    
     print('Total executtion time: %.2f seconds.' % (time.time() - start_time))
 
-    plot_cluster_membership(embedding=embedding, clusterer=clusterer, save=False, figname='test', figpath='../dimred_figs/')
+    export_vtk_data(mesh=mesh, path=path_output, cluster_labels=clusterer.labels_)
 
-    # Useful code:
+    plot_cluster_membership(embedding=embedding, clusterer=clusterer, save=False)
+
+    # Other useful code snippets:
     #
     # plot_embedding(embedding=embedding, data=data, scale_points=True, cmap_var='Phi', cmap_minmax=[0, 5])
     #
     # plot_clustering(
     #     embedding=embedding,
     #     cluster_labels=clusterer.labels_
+    # )
+    #
+    # embedding, mapper = embed_data(
+    #     data=cleaned_data,
+    #     algorithm=TSNE,
+    #     scale=True,
+    #     perplexity=40
     # )
     #
     # clusterer = clustering(
