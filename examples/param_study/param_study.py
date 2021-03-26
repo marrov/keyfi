@@ -7,8 +7,7 @@ from dimred.dimred import *
 
 
 def run_UMAP(data, figname, **params):
-    cleaned_data = clean_data(data, dim=2, vars_to_drop=[
-                              'T'])
+    cleaned_data = clean_data(data, dim=2, vars_to_drop=['U:0', 'U:1', 'U:2'])
 
     embedding, mapper = embed_data(
         data=cleaned_data,
@@ -20,23 +19,14 @@ def run_UMAP(data, figname, **params):
     plot_embedding(embedding=embedding, data=data, scale_points=True, save=True,
                    figname=figname, figpath='../../../dimred_figs/figs_param_study/')
 
-    # clusterer = cluster_embedding(
-    #    embedding=embedding,
-    #    algorithm=hdbscan.HDBSCAN,
-    #    min_cluster_size=60
-    # )
-
-    # plot_cluster_membership(embedding=embedding, clusterer=clusterer,
-    #                        save=True, figname=figname, figpath='../../../dimred_figs/figs_param_study/')
-
 
 if __name__ == '__main__':
-    path = '../../data/input/2D_212_35.csv'
-    data = import_csv_data(path)
+    path_input = '../../data/input/2D_848_140_bin.vtk'
+    data, _ = import_vtk_data(path_input)
 
-    floats_array = np.logspace(0.3, 2.7, 20)
+    floats_array = np.logspace(1, 4, 1)
     range_n_neighbors = [int(np.round(x)) for x in floats_array]
-    range_min_dist = [0.2]
+    range_min_dist = np.linspace(0.2, 0.6, 1)
 
     for n in range_n_neighbors:
         for d in range_min_dist:
