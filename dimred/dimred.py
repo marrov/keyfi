@@ -34,6 +34,11 @@ def import_vtk_data(path: str = '') -> pd.DataFrame:
     mesh = pv.read(path)
     # Include undesired variables and vectors
     var_names_to_drop = ['U', 'vtkGhostType']
+
+    if type(mesh) == pv.MultiBlock:
+        mesh = mesh.get(0)
+        var_names_to_drop.append('TimeValue')
+
     var_names = [name for name in mesh.array_names if name not in var_names_to_drop]
     var_arrays = np.transpose([mesh.get_array(var_name) for var_name in var_names])
     df = pd.DataFrame(var_arrays, columns=var_names)
@@ -123,8 +128,8 @@ def main():
 
     print('Running dimred...')
 
-    path_input = 'data/input/2D_848_140_bin.vtk'
-    path_output = 'data/output/2D_848_140.vtk'
+    path_input = 'data/input/2D_original_mesh.vtm'
+    path_output = 'data/output/clusters.vtk'
 
     data, mesh = import_vtk_data(path_input)
 
@@ -139,9 +144,9 @@ def main():
     embedding, mapper = embed_data(
         data=cleaned_data,
         algorithm=umap.UMAP,
-        scale=False,
+        scale=True,
         n_neighbors=100,
-        min_dist=0.3,
+        min_dist=0.15,
     )
 
     embedding_time = time.time()
@@ -150,7 +155,7 @@ def main():
     clusterer = cluster_embedding(
         embedding=embedding,
         algorithm=hdbscan.HDBSCAN,
-        min_cluster_size=60
+        min_cluster_size=100
     )
     
     clustering_time = time.time()
