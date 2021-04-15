@@ -351,7 +351,7 @@ def umap_plot(mapper: Type, save: bool = False, figname: str = None, figpath: st
 
 # %% Read mesh
 
-path_input = '../data/input/2D_212_35.vtk'
+path_input = '../data/input/2D_848_140.vtk'
 data, mesh = import_vtk_data(path_input)
 
 # %% Clean data
@@ -368,7 +368,7 @@ embedding, mapper = embed_data(
     #min_dist=0.2,
     algorithm=TSNE,
     scale=True,
-    perplexity=60
+    perplexity=40
 )
 
 # %% Compute clustering
@@ -376,7 +376,7 @@ embedding, mapper = embed_data(
 clusterer = cluster_embedding(
     embedding=embedding,
     algorithm=hdbscan.HDBSCAN,
-    min_cluster_size=90
+    min_cluster_size=150
 )
 
 # %% Export clusters as VTK
