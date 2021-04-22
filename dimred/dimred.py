@@ -147,6 +147,7 @@ def main():
         scale=True,
         n_neighbors=100,
         min_dist=0.15,
+        prediction_data=True
     )
 
     embedding_time = time.time()

@@ -56,15 +56,22 @@ def _set_point_size(points: np.ndarray) -> np.ndarray:
     return point_size
 
 
-def _set_cluster_member_colors(clusterer: hdbscan.HDBSCAN):
+def _set_cluster_member_colors(clusterer: hdbscan.HDBSCAN, soft: bool = True):
     n_clusters = np.size(np.unique(clusterer.labels_))
-    if -1 in np.unique(clusterer.labels_):
+
+    if -1 in np.unique(clusterer.labels_) and not soft:
         color_palette = sns.color_palette('husl', n_clusters-1)
     else:
         color_palette = sns.color_palette('husl', n_clusters)
-    cluster_colors = [color_palette[x] if x >= 0
-                      else (0.5, 0.5, 0.5)
-                      for x in clusterer.labels_]
+
+    if soft:
+        soft_clusters = hdbscan.all_points_membership_vectors(clusterer)
+        cluster_colors = [color_palette[np.argmax(x)]
+                          for x in soft_clusters]
+    else:
+        cluster_colors = [color_palette[x] if x >= 0
+                          else (0.5, 0.5, 0.5)
+                          for x in clusterer.labels_]
     cluster_member_colors = [sns.desaturate(x, p)
                              for x, p
                              in zip(cluster_colors, clusterer.probabilities_)]
@@ -141,11 +148,11 @@ def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_poi
         plt.show()
 
 
-def plot_cluster_membership(embedding: np.ndarray, clusterer: hdbscan.HDBSCAN, scale_points: bool = True, legend: bool = True, save: bool = False, figname: str = None, figpath: str = None):
+def plot_cluster_membership(embedding: np.ndarray, clusterer: hdbscan.HDBSCAN, scale_points: bool = True, legend: bool = True, save: bool = False, figname: str = None, figpath: str = None, soft: bool = True):
     fig, ax = _set_plot_settings()
 
     cluster_member_colors, color_palette = _set_cluster_member_colors(
-        clusterer)
+        clusterer, soft)
 
     if scale_points:
         point_size = 5*_set_point_size(embedding)
