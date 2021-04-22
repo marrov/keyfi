@@ -41,6 +41,7 @@ def measure(func):
 
 # %% Declare dimred functions
 
+
 @measure
 def import_csv_data(path: str = '') -> pd.DataFrame:
     '''
@@ -49,6 +50,7 @@ def import_csv_data(path: str = '') -> pd.DataFrame:
     if not path:
         path = input('Enter the path of your csv data file: ')
     return pd.read_csv(path)
+
 
 @measure
 def import_vtk_data(path: str = '') -> pd.DataFrame:
@@ -76,6 +78,7 @@ def import_vtk_data(path: str = '') -> pd.DataFrame:
     df[['U:0', 'U:1', 'U:2']] = mesh.get_array('U')
     return df, mesh
 
+
 @measure
 def export_vtk_data(mesh: Type, path: str = '', cluster_labels: np.ndarray = None):
     '''
@@ -85,6 +88,7 @@ def export_vtk_data(mesh: Type, path: str = '', cluster_labels: np.ndarray = Non
     if cluster_labels is not None:
         mesh['clusters'] = cluster_labels
     mesh.save(path)
+
 
 @measure
 def clean_data(data: pd.DataFrame, dim: int = 2, vars_to_drop: Sequence[str] = None) -> pd.DataFrame:
@@ -117,6 +121,7 @@ def clean_data(data: pd.DataFrame, dim: int = 2, vars_to_drop: Sequence[str] = N
 
     return cleaned_data
 
+
 @measure
 def scale_data(data: pd.DataFrame) -> np.ndarray:
     '''    
@@ -124,6 +129,7 @@ def scale_data(data: pd.DataFrame) -> np.ndarray:
     '''
     scaled_data = StandardScaler().fit_transform(data)
     return scaled_data
+
 
 @measure
 def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, **params) -> Tuple[np.ndarray, Type]:
@@ -154,6 +160,7 @@ def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, **params) -> T
 
 # %% Declare cluster functions
 
+
 @measure
 def cluster_embedding(embedding: np.ndarray, algorithm, **params) -> Type:
     algorithms = [hdbscan.HDBSCAN, KMeans]
@@ -163,6 +170,7 @@ def cluster_embedding(embedding: np.ndarray, algorithm, **params) -> Type:
 
     clusterer = algorithm(**params).fit(embedding)
     return clusterer
+
 
 @measure
 def show_condensed_tree(clusterer: hdbscan.HDBSCAN, select_clusters: bool = True, label_clusters: bool = True, **params):
@@ -183,6 +191,7 @@ Num = Union[int, float]
 rcParams['mathtext.fontset'] = 'stix'
 rcParams['font.family'] = 'STIXGeneral'
 
+
 @measure
 def _set_plot_settings() -> Tuple[plt.Figure, plt.Subplot]:
     fig, ax = plt.subplots(figsize=[6, 5])
@@ -191,17 +200,20 @@ def _set_plot_settings() -> Tuple[plt.Figure, plt.Subplot]:
     plt.yticks(fontsize=16)
     return fig, ax
 
+
 @measure
 def _set_colors(n_clusters: int) -> Tuple[colors.ListedColormap, colors.BoundaryNorm]:
     cmap = colors.ListedColormap(tuple(sns.color_palette('husl', n_clusters)))
     norm = colors.BoundaryNorm(np.arange(-0.5, n_clusters), n_clusters)
     return cmap, norm
 
+
 @measure
 def _set_colorbar(label: str = None, **kwargs):
     cb = plt.colorbar(**kwargs)
     cb.ax.tick_params(labelsize=16)
     cb.set_label(label, size=16)
+
 
 @measure
 def _set_legend(labels: np.ndarray, cmap: colors.ListedColormap, ax: plt.Subplot):
@@ -213,15 +225,18 @@ def _set_legend(labels: np.ndarray, cmap: colors.ListedColormap, ax: plt.Subplot
     legend.get_frame().set_alpha(None)
     legend.get_frame().set_facecolor((1, 1, 1, 0.25))
 
+
 @measure
 def _remove_axes(ax: plt.Subplot):
     ax.set(yticklabels=[], xticklabels=[])
     ax.tick_params(left=False, bottom=False)
 
+
 @measure
 def _set_point_size(points: np.ndarray) -> np.ndarray:
     point_size = 100.0 / np.sqrt(points.shape[0])
     return point_size
+
 
 @measure
 def _set_cluster_member_colors(clusterer: hdbscan.HDBSCAN, soft: bool = True):
@@ -244,6 +259,7 @@ def _set_cluster_member_colors(clusterer: hdbscan.HDBSCAN, soft: bool = True):
                              for x, p
                              in zip(cluster_colors, clusterer.probabilities_)]
     return cluster_member_colors, color_palette
+
 
 @measure
 def plot_embedding(embedding: np.ndarray, data: pd.DataFrame = pd.DataFrame(), scale_points: bool = True, cmap_var: str = None, cmap_minmax: Sequence[Num] = list(), save: bool = False, figname: str = None, figpath: str = None):
@@ -285,6 +301,7 @@ def plot_embedding(embedding: np.ndarray, data: pd.DataFrame = pd.DataFrame(), s
     else:
         plt.show()
 
+
 @measure
 def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_points: bool = True, save: bool = False, figname: str = None, figpath: str = None):
     fig, ax = _set_plot_settings()
@@ -317,11 +334,13 @@ def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_poi
     else:
         plt.show()
 
+
 @measure
 def plot_cluster_membership(embedding: np.ndarray, clusterer: hdbscan.HDBSCAN, scale_points: bool = True, legend: bool = True, save: bool = False, figname: str = None, figpath: str = None, soft: bool = True):
     fig, ax = _set_plot_settings()
 
-    cluster_member_colors, color_palette = _set_cluster_member_colors(clusterer, soft)
+    cluster_member_colors, color_palette = _set_cluster_member_colors(
+        clusterer, soft)
 
     if scale_points:
         point_size = 5*_set_point_size(embedding)
@@ -347,6 +366,7 @@ def plot_cluster_membership(embedding: np.ndarray, clusterer: hdbscan.HDBSCAN, s
     else:
         plt.show()
 
+
 @measure
 def umap_plot(mapper: Type, save: bool = False, figname: str = None, figpath: str = None, **kwargs):
     umap.plot.points(mapper, **kwargs)
@@ -357,6 +377,7 @@ def umap_plot(mapper: Type, save: bool = False, figname: str = None, figpath: st
         plt.show()
 
 # %% Read mesh
+
 
 path_input = '../data/input/2D_212_35.vtk'
 data, mesh = import_vtk_data(path_input)
@@ -373,6 +394,7 @@ embedding, mapper = embed_data(
     scale=True,
     n_neighbors=100,
     min_dist=0.1,
+    random_state=0
     #algorithm=TSNE,
     #scale=True,
     #perplexity=40
@@ -384,7 +406,7 @@ clusterer = cluster_embedding(
     embedding=embedding,
     algorithm=hdbscan.HDBSCAN,
     min_cluster_size=45,
-    min_samples=15,
+    min_samples=30,
     prediction_data=True
 )
 
@@ -395,7 +417,8 @@ export_vtk_data(mesh=mesh, path=path_output, cluster_labels=clusterer.labels_)
 
 # %% Plot cluster membership
 
-plot_cluster_membership(embedding=embedding, clusterer=clusterer, save=False, soft=True)
+plot_cluster_membership(embedding=embedding,
+                        clusterer=clusterer, save=False, soft=True)
 
 
 # %% Other useful code snippets:
@@ -432,4 +455,34 @@ show_condensed_tree(
     log_size=True
 )
 
+# %% First attempt at feature correlation
+
+# In current embedding cluster 1 contains the jet which clearly is dominated by the high presence of O3 and higher velocity... Lets see if the method is able to catch this
+
+# First construct clustered data DataFrame with cluster labels and embedding data
+clustered_data = cleaned_data.copy()
+clustered_data['clusters'] = clusterer.labels_
+clustered_data[['Var_X', 'Var_Y']] = embedding
+
+# Select only points in cluster 1 (and drop clusters columns)
+CLUSTER_NUMBER = 1
+cluster_target = clustered_data[(clustered_data['clusters'] == CLUSTER_NUMBER)].copy()
+cluster_target.drop(columns='clusters', inplace=True)
+
+# Use mutual information for the embedding variables
+from sklearn.feature_selection import mutual_info_regression
+X = cluster_target.drop(columns=['Var_X', 'Var_Y'])
+y = cluster_target[['Var_X', 'Var_Y']]
+
+def make_mi_scores(X, y):
+    mi_scores = mutual_info_regression(X, y)
+    #mi_scores /= np.max(mi_scores)
+    mi_scores = pd.Series(mi_scores, name="MI Scores", index=X.columns)
+    mi_scores = mi_scores.sort_values(ascending=False)
+    return mi_scores
+
+for column in y.columns:
+    mi_scores = make_mi_scores(X, y[column])
+    print(mi_scores)
+    
 # %%
