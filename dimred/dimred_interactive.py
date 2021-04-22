@@ -35,7 +35,7 @@ def measure(func):
         finally:
             end_ = int(round(process_time() * 1000)) - start
             print(
-                f"Execution time {func.__name__}: {end_ if end_ > 0 else 0} ms"
+                f"Execution time for {func.__name__}: {end_ if end_ > 0 else 0} ms"
             )
     return _time_it
 
@@ -168,6 +168,7 @@ def cluster_embedding(embedding: np.ndarray, algorithm, **params) -> Type:
 def show_condensed_tree(clusterer: hdbscan.HDBSCAN, select_clusters: bool = True, label_clusters: bool = True, **params):
     n_clusters = np.size(np.unique(clusterer.labels_))
     cmap, _ = _set_colors(n_clusters)
+    fig, ax = plt.subplots(figsize=[12, 6])
     clusterer.condensed_tree_.plot(
         select_clusters=select_clusters,
         selection_palette=list(cmap.colors),
@@ -223,15 +224,22 @@ def _set_point_size(points: np.ndarray) -> np.ndarray:
     return point_size
 
 @measure
-def _set_cluster_member_colors(clusterer: hdbscan.HDBSCAN):
+def _set_cluster_member_colors(clusterer: hdbscan.HDBSCAN, soft: bool = True):
     n_clusters = np.size(np.unique(clusterer.labels_))
-    if -1 in np.unique(clusterer.labels_):
+
+    if -1 in np.unique(clusterer.labels_) and not soft:
         color_palette = sns.color_palette('husl', n_clusters-1)
     else:
         color_palette = sns.color_palette('husl', n_clusters)
-    cluster_colors = [color_palette[x] if x >= 0
-                      else (0.5, 0.5, 0.5)
-                      for x in clusterer.labels_]
+
+    if soft:
+        soft_clusters = hdbscan.all_points_membership_vectors(clusterer)
+        cluster_colors = [color_palette[np.argmax(x)]
+                          for x in soft_clusters]
+    else:
+        cluster_colors = [color_palette[x] if x >= 0
+                          else (0.5, 0.5, 0.5)
+                          for x in clusterer.labels_]
     cluster_member_colors = [sns.desaturate(x, p)
                              for x, p
                              in zip(cluster_colors, clusterer.probabilities_)]
@@ -310,11 +318,10 @@ def plot_clustering(embedding: np.ndarray, cluster_labels: np.ndarray, scale_poi
         plt.show()
 
 @measure
-def plot_cluster_membership(embedding: np.ndarray, clusterer: hdbscan.HDBSCAN, scale_points: bool = True, legend: bool = True, save: bool = False, figname: str = None, figpath: str = None):
+def plot_cluster_membership(embedding: np.ndarray, clusterer: hdbscan.HDBSCAN, scale_points: bool = True, legend: bool = True, save: bool = False, figname: str = None, figpath: str = None, soft: bool = True):
     fig, ax = _set_plot_settings()
 
-    cluster_member_colors, color_palette = _set_cluster_member_colors(
-        clusterer)
+    cluster_member_colors, color_palette = _set_cluster_member_colors(clusterer, soft)
 
     if scale_points:
         point_size = 5*_set_point_size(embedding)
@@ -351,7 +358,7 @@ def umap_plot(mapper: Type, save: bool = False, figname: str = None, figpath: st
 
 # %% Read mesh
 
-path_input = '../data/input/2D_848_140.vtk'
+path_input = '../data/input/2D_212_35.vtk'
 data, mesh = import_vtk_data(path_input)
 
 # %% Clean data
@@ -362,13 +369,13 @@ cleaned_data = clean_data(data, dim=2)
 
 embedding, mapper = embed_data(
     data=cleaned_data,
-    #algorithm=umap.UMAP,
-    #scale=True,
-    #n_neighbors=20,
-    #min_dist=0.2,
-    algorithm=TSNE,
+    algorithm=umap.UMAP,
     scale=True,
-    perplexity=40
+    n_neighbors=100,
+    min_dist=0.1,
+    #algorithm=TSNE,
+    #scale=True,
+    #perplexity=40
 )
 
 # %% Compute clustering
@@ -376,7 +383,9 @@ embedding, mapper = embed_data(
 clusterer = cluster_embedding(
     embedding=embedding,
     algorithm=hdbscan.HDBSCAN,
-    min_cluster_size=150
+    min_cluster_size=45,
+    min_samples=15,
+    prediction_data=True
 )
 
 # %% Export clusters as VTK
@@ -386,7 +395,7 @@ export_vtk_data(mesh=mesh, path=path_output, cluster_labels=clusterer.labels_)
 
 # %% Plot cluster membership
 
-plot_cluster_membership(embedding=embedding, clusterer=clusterer, save=False)
+plot_cluster_membership(embedding=embedding, clusterer=clusterer, save=False, soft=True)
 
 
 # %% Other useful code snippets:
@@ -416,9 +425,11 @@ plot_cluster_membership(embedding=embedding, clusterer=clusterer, save=False)
 #
 # umap_plot(mapper, labels=clusterer.labels_)
 #
-# show_condensed_tree(
-#     clusterer,
-#     select_clusters=True,
-#     label_clusters=True,
-#     log_size=True
-# )
+show_condensed_tree(
+    clusterer,
+    select_clusters=True,
+    label_clusters=True,
+    log_size=True
+)
+
+# %%
