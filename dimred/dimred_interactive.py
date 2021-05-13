@@ -1,6 +1,6 @@
 # %% Import packages
 
-import time
+
 import umap
 import hdbscan
 import warnings
@@ -176,7 +176,9 @@ def cluster_embedding(embedding: np.ndarray, algorithm, **params) -> Type:
 def show_condensed_tree(clusterer: hdbscan.HDBSCAN, select_clusters: bool = True, label_clusters: bool = True, **params):
     n_clusters = np.size(np.unique(clusterer.labels_))
     cmap, _ = _set_colors(n_clusters)
-    fig, ax = plt.subplots(figsize=[12, 6])
+    fig, ax = plt.subplots(figsize=[12, 5])
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
     clusterer.condensed_tree_.plot(
         select_clusters=select_clusters,
         selection_palette=list(cmap.colors),
@@ -190,7 +192,7 @@ def show_condensed_tree(clusterer: hdbscan.HDBSCAN, select_clusters: bool = True
 Num = Union[int, float]
 rcParams['mathtext.fontset'] = 'stix'
 rcParams['font.family'] = 'STIXGeneral'
-
+plt.rcParams.update({'font.size': 16})
 
 @measure
 def _set_plot_settings() -> Tuple[plt.Figure, plt.Subplot]:
@@ -221,7 +223,7 @@ def _set_legend(labels: np.ndarray, cmap: colors.ListedColormap, ax: plt.Subplot
     legend_elements = [Patch(facecolor=cmap.colors[i], label=unique_label)
                        for i, unique_label in enumerate(unique_labels)]
     legend = ax.legend(handles=legend_elements, title='Clusters', fontsize=14,
-                       title_fontsize=14, loc="upper right")
+                       title_fontsize=14, loc="lower left")
     legend.get_frame().set_alpha(None)
     legend.get_frame().set_facecolor((1, 1, 1, 0.25))
 
@@ -242,7 +244,7 @@ def _set_point_size(points: np.ndarray) -> np.ndarray:
 def _set_cluster_member_colors(clusterer: hdbscan.HDBSCAN, soft: bool = True):
     n_clusters = np.size(np.unique(clusterer.labels_))
 
-    if -1 in np.unique(clusterer.labels_) and not soft:
+    if -1 in np.unique(clusterer.labels_):
         color_palette = sns.color_palette('husl', n_clusters-1)
     else:
         color_palette = sns.color_palette('husl', n_clusters)
@@ -394,10 +396,10 @@ embedding, mapper = embed_data(
     scale=True,
     n_neighbors=100,
     min_dist=0.1,
-    random_state=0
+    #random_state=0
     #algorithm=TSNE,
     #scale=True,
-    #perplexity=40
+    #perplexity=150
 )
 
 # %% Compute clustering
@@ -405,20 +407,20 @@ embedding, mapper = embed_data(
 clusterer = cluster_embedding(
     embedding=embedding,
     algorithm=hdbscan.HDBSCAN,
-    min_cluster_size=45,
-    min_samples=30,
+    min_cluster_size=100,
+    min_samples=10,
     prediction_data=True
 )
 
 # %% Export clusters as VTK
 
-path_output = '../data/output/clusters.vtk'
+path_output = '../data/output/clusters_tsne.vtk'
 export_vtk_data(mesh=mesh, path=path_output, cluster_labels=clusterer.labels_)
 
 # %% Plot cluster membership
 
 plot_cluster_membership(embedding=embedding,
-                        clusterer=clusterer, save=False, soft=True)
+                        clusterer=clusterer, save=False, soft=False)
 
 
 # %% Other useful code snippets:
@@ -457,6 +459,10 @@ show_condensed_tree(
 
 # %% First attempt at feature correlation
 
+#====================== IMPORTANT ==========================================
+# Take a look at the documentation of sklearn.feature_selection.SelectKBest which can automate all this process in one line
+#====================== IMPORTANT ==========================================
+
 # In current embedding cluster 1 contains the jet which clearly is dominated by the high presence of O3 and higher velocity... Lets see if the method is able to catch this
 
 # First construct clustered data DataFrame with cluster labels and embedding data
@@ -465,8 +471,9 @@ clustered_data['clusters'] = clusterer.labels_
 clustered_data[['Var_X', 'Var_Y']] = embedding
 
 # Select only points in cluster 1 (and drop clusters columns)
-CLUSTER_NUMBER = 1
-cluster_target = clustered_data[(clustered_data['clusters'] == CLUSTER_NUMBER)].copy()
+cluster_num = 0
+cluster_target = clustered_data[(
+    clustered_data['clusters'] == cluster_num)].copy()
 cluster_target.drop(columns='clusters', inplace=True)
 
 # Use mutual information for the embedding variables
@@ -481,8 +488,11 @@ def make_mi_scores(X, y):
     mi_scores = mi_scores.sort_values(ascending=False)
     return mi_scores
 
+print(f'Mutual Information scores for cluster {cluster_num}: \n')
 for column in y.columns:
     mi_scores = make_mi_scores(X, y[column])
+    print(column)
     print(mi_scores)
+    print('\n')
     
 # %%
