@@ -42,4 +42,4 @@ conda deactivate
 WIP
 
 ## Authors
-* [Marc Rovira](https://github.com/mrovirasacie)
+* [Marc Rovira](https://github.com/marrov)
