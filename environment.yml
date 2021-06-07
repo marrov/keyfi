@@ -1,4 +1,4 @@
-name: dimred
+name: keyfi
 channels:
   - conda-forge
   - defaults
@@ -278,4 +278,3 @@ dependencies:
   - zipp=3.4.1=pyhd3eb1b0_0
   - zlib=1.2.11=h7b6447c_3
   - zstd=1.4.5=h9ceee32_0
-prefix: /home/marc/miniconda3/envs/ml
