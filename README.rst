@@ -27,7 +27,7 @@ Open a terminal window and clone this repository by writing:
 
 .. code-block:: bash
 
-    git clone https://github.com/mrovirasacie/keyfi
+    git clone https://github.com/marrov/keyfi
 
 In order to use ``keyfi`` several `Python 3 <https://www.python.org/>`__ packages are required. Creating a brand new `Conda <https://docs.conda.io/en/latest/>`__ environment for this is recommended. This can be done easily with the provided ``environment.yml`` file as follows:
 
@@ -66,5 +66,5 @@ In the ``example`` folder you will find several Jupyter notebooks that will walk
 Authors
 -------
 
--  `Marc Rovira <https://github.com/mrovirasacie>`__
+-  `Marc Rovira <https://github.com/marrov>`__
 
