@@ -23,21 +23,26 @@ def import_vtk_data(path: str = '') -> pd.DataFrame:
     Also returns mesh pyvista object.
     '''
     if not path:
-        path = input('Enter the path of your csv data file: ')
+        path = input('Enter the path of your vtk data file: ')
 
     mesh = pv.read(path)
-    # Include undesired variables and vectors
-    var_names_to_drop = ['U', 'vtkGhostType']
 
-    if type(mesh) == pv.MultiBlock:
-        mesh = mesh.get(0)
-        var_names_to_drop.append('TimeValue')
+    vector_names = []
 
-    var_names = [name for name in mesh.array_names if name not in var_names_to_drop]
+    # Detect which variables are vectors
+    for var_name in mesh.array_names:
+        if np.size(mesh.get_array(var_name)) != mesh.n_points:
+            vector_names.append(var_name)
+
+    var_names = [name for name in mesh.array_names if name not in vector_names]
     var_arrays = np.transpose([mesh.get_array(var_name) for var_name in var_names])
     df = pd.DataFrame(var_arrays, columns=var_names)
-    # Add the velocity back with one row per component
-    df[['U:0', 'U:1', 'U:2']] = mesh.get_array('U')
+
+    # Add the vectors back with one row per component
+    for vector_name in vector_names:
+        # Hard coded assumption that all vectors have 3 dimensions
+        df[[vector_name + ':' + str(i) for i in range(3)]] = mesh.get_array(vector_name)
+
     return df, mesh
 
 
