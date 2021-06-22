@@ -34,6 +34,7 @@ def import_vtk_data(path: str = '') -> pd.DataFrame:
         if np.size(mesh.get_array(var_name)) != mesh.n_points:
             vector_names.append(var_name)
 
+    # Make a dataframe from only scalar mesh arrays (i.e. exclude vectors)
     var_names = [name for name in mesh.array_names if name not in vector_names]
     var_arrays = np.transpose([mesh.get_array(var_name) for var_name in var_names])
     df = pd.DataFrame(var_arrays, columns=var_names)
