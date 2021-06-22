@@ -29,6 +29,8 @@ def fix_yticks(labels):
                 lst[-1] = '_x'
             elif lst[-1] == '1':
                 lst[-1] = '_y'
+            elif lst[-1] == '2':
+                lst[-1] = '_z'
             new_yticks.append(''.join(lst))
         else:
             new_yticks.append(label.get_text())
