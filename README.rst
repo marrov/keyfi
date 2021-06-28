@@ -42,7 +42,6 @@ Now you can install the ``keyfi`` package into this newly created environment th
 
 .. code-block:: bash
 
-    cd keyfi
     pip install -e .
 
 You can test out your installation by running the example as outlined in the next section.
