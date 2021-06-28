@@ -53,15 +53,15 @@ To deactivate this environment simply type:
 
     conda deactivate
 
-Examples
---------
+Tutorials
+---------
 
-In the ``example`` folder you will find several Jupyter notebooks that will walk you through the usage of ``keyfi``. You will find tutorials for:
+In the ``tutorials`` folder you will find several Jupyter notebooks that will walk you through the usage of ``keyfi``. You will find tutorials for:
 
-* `keyfi <https://github.com/marrov/keyfi/blob/master/examples/keyfi/keyfi_tutorial.ipynb>`__
-* `umap <https://github.com/marrov/keyfi/blob/master/examples/algorithms/umap_tutorial.ipynb>`__
-* `hdbscan <https://github.com/marrov/keyfi/blob/master/examples/algorithms/hdbscan_tutorial.ipynb>`__
-* `mutual information <https://github.com/marrov/keyfi/blob/master/examples/algorithms/mi_tutorial.ipynb>`__
+* `keyfi <https://github.com/marrov/keyfi/blob/master/tutorials/keyfi_tutorial.ipynb>`__
+* `umap <https://github.com/marrov/keyfi/blob/master/tutorials/umap_tutorial.ipynb>`__
+* `hdbscan <https://github.com/marrov/keyfi/blob/master/tutorials/hdbscan_tutorial.ipynb>`__
+* `mutual information <https://github.com/marrov/keyfi/blob/master/tutorials/mi_tutorial.ipynb>`__
 
 Authors
 -------
