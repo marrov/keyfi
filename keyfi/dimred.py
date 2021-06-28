@@ -64,7 +64,7 @@ def export_vtk_data(mesh: Type, path: str = '', cluster_labels: np.ndarray = Non
         mesh['clusters'] = cluster_labels
     mesh.save(path)
 
-def clean_data(data: pd.DataFrame, dim: int = 2, vars_to_drop: Sequence[str] = None) -> pd.DataFrame:
+def clean_data(data: pd.DataFrame, dim: int = 2, vars_to_drop: Sequence[str] = None, vars_to_keep: Sequence[str] = None) -> pd.DataFrame:
     '''    
     Removes ghost cells (if present) and other data columns that
     are not relevant for the dimensionality reduction (i.e. spatial 
@@ -83,14 +83,19 @@ def clean_data(data: pd.DataFrame, dim: int = 2, vars_to_drop: Sequence[str] = N
         data.drop(data[data.vtkGhostType == 2].index, inplace=True)
         cols_to_drop.append('vtkGhostType')
 
-    if 'U:0' in data.columns and dim == 2:
-        cols_to_drop.append('U:2')
+    if vars_to_keep is not None:
+        # Return cleaned data based on preferred var
+        cleaned_data = data[["{}".format(var) for var in vars_to_keep]]
+    else:
+        # drop undesired variables based on 'dim' and 'var_to_drop'
+        if 'U:0' in data.columns and dim == 2:
+            cols_to_drop.append('U:2')
 
-    if vars_to_drop is not None:
-        cols_to_drop.extend(vars_to_drop)
+        if vars_to_drop is not None:
+            cols_to_drop.extend(vars_to_drop)
 
-    cleaned_data = data.drop(columns=cols_to_drop, axis=1)
-    cleaned_data.reset_index(drop=True, inplace=True)
+        cleaned_data = data.drop(columns=cols_to_drop, axis=1)
+        cleaned_data.reset_index(drop=True, inplace=True)
 
     return cleaned_data
 
