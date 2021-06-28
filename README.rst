@@ -33,7 +33,7 @@ In order to use ``keyfi`` several `Python 3 <https://www.python.org/>`__ package
 
 .. code-block:: bash
 
-    conda env create -f keyfi/environment.yml
+    conda env create -f environment.yml
     conda activate keyfi
 
 After executing these commands a new Conda environment named ``keyfi`` will be created with all necessary packages. The environment is self-contained so as to not influence other local python installations and avoid conflicts with previously installed packages. 
@@ -42,7 +42,6 @@ Now you can install the ``keyfi`` package into this newly created environment th
 
 .. code-block:: bash
 
-    cd keyfi
     pip install -e .
 
 You can test out your installation by running the example as outlined in the next section.
