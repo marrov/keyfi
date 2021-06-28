@@ -41,8 +41,16 @@ def import_vtk_data(path: str = '') -> pd.DataFrame:
 
     # Add the vectors back with one row per component
     for vector_name in vector_names:
-        # Hard coded assumption that all vectors have 3 dimensions
-        df[[vector_name + ':' + str(i) for i in range(3)]] = mesh.get_array(vector_name)
+        # Get dimension of data e.g., 1D or 2D
+        data_dim = mesh.get_array(vector_name).ndim
+
+        if data_dim == 1: 
+            pass
+        else:
+            # Get dimension (number of columns) of typical vector
+            dim = mesh.get_array(vector_name).shape[1]
+            # split data using dim insteady of hard coding
+            df[[vector_name + ':' + str(i) for i in range(dim)]] = mesh.get_array(vector_name)
 
     return df, mesh
 
