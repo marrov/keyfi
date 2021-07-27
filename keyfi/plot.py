@@ -182,3 +182,68 @@ def umap_plot(mapper: Type, save: bool = False, figname: str = None, figpath: st
     umap.plot.points(mapper, **kwargs)
     
     _save_fig(save, figname, figpath)
+
+def plot_vtk_data(mesh, clusterer: HDBSCAN, legend: bool = True, soft: bool = True):
+    import pyvista as pv
+    cluster_member_colors, color_palette = _set_cluster_member_colors(clusterer, soft)
+
+    labels=clusterer.labels_
+
+    if legend:
+        if -1 in np.unique(labels):
+            unique_colors = ((0.5, 0.5, 0.5), *tuple(color_palette))
+        else:
+            unique_colors = tuple(color_palette)
+        cmap = colors.ListedColormap(unique_colors)
+    print (np.size(unique_colors))
+    print (np.size(np.unique(clusterer.labels_))) #10000 labels from -1 to 10 -> -1 -1 -1 2 4 1 8
+    #print (len(unique_colors)) #15 RGB colors
+    #print (len(cluster_member_colors)) #10000
+    #print (color_palette, len(color_palette)) # 14
+    # Make a dictionary for the annotations
+    annotations = {
+    0.8: "High",
+    805.3: "Cutoff value",
+    }
+
+    sargs = dict(
+    mapper=None, 
+    title_font_size=20,
+    label_font_size=16,
+    shadow=True,
+    n_labels=len(unique_colors),
+    italic=True,
+    fmt="%.0f",
+    font_family="arial",
+    interactive=True,
+    color='k'
+    )  # Simply make the bar interactive
+    unique_labels = np.unique(labels)
+    print (unique_labels)
+    #legend_elements = [Patch(facecolor=cmap.colors[i], label=unique_label)
+    #for i, unique_label in enumerate(unique_labels)]
+    #print (legend_elements)
+    # First a default plot with jet colormap
+    p = pv.Plotter(notebook=False)  # If in IPython, be sure to show the scene
+    # Add the data, use active scalar for coloring, and show the scalar bar
+    mesh['values'] = cluster_member_colors
+
+    #mesh['values'] = labels
+    unique_labels = np.unique(labels)
+    #legend_elements = [Patch(facecolor=cmap.colors[i], label=unique_label)
+                       #for i, unique_label in enumerate(unique_labels)]
+    legend_elements = [[str(unique_label), cmap.colors[i]] for i, unique_label in enumerate(unique_labels)]
+    print (legend_elements)
+    p.add_mesh(mesh, scalar_bar_args=sargs, scalars='values', cmap=cmap)#, annotations=annotations) #clim=[0.7, 1.4]
+    #legend_entries = []
+    #legend_entries.append(['-1', (0.5,0.5,0.5)])
+    #legend_entries.append(['0', 'k'])
+    #p.add_legend(legend_entries)
+    p.add_legend(legend_elements, size = [0.3, 0.3], origin = [0.1, 0.1])
+    p.background_color = 'w'
+    p.show()
+
+    #mesh.plot(scalars='values', cmap=cmap)
+
+    # Remove from plotters so output is not produced in docs
+    pv.plotting._ALL_PLOTTERS.clear()

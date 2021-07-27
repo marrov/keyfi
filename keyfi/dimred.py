@@ -5,6 +5,8 @@ import pyvista as pv
 from umap import UMAP
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MaxAbsScaler
 from typing import Sequence, Tuple, Type
 
 
@@ -26,6 +28,12 @@ def import_vtk_data(path: str = '') -> pd.DataFrame:
         path = input('Enter the path of your vtk data file: ')
 
     mesh = pv.read(path)
+    
+    # Remove vtkGhostType automatically by applying threshold, replace step in paraview.
+    if 'vtkGhostType' in mesh.array_names:
+        mesh = mesh.threshold(value = [0,0.99], scalars = "vtkGhostType",
+               invert=False, continuous = True, preference = "cell",
+               all_scalars = False)
 
     vector_names = []
 
@@ -98,17 +106,47 @@ def clean_data(data: pd.DataFrame, dim: int = 2, vars_to_drop: Sequence[str] = N
         cleaned_data.reset_index(drop=True, inplace=True)
 
     return cleaned_data
-
-
-def scale_data(data: pd.DataFrame) -> np.ndarray:
+    
+def scale_data(data: pd.DataFrame, scaler: str = 'StandardScaler', feature: str = 'All') -> np.ndarray:
     '''    
     Scales input data based on sklearn standard scaler.
     '''
-    scaled_data = StandardScaler().fit_transform(data)
+    scalers = [MinMaxScaler.__name__, StandardScaler.__name__, MaxAbsScaler.__name__]
+    if scaler not in scalers:
+        raise ValueError(
+            'invalid scaler. Expected one of: %s' % scalers)
+    if feature not in data.columns:
+        raise ValueError(
+            'invalid feature. Expected one of: %s' % data.columns)
+            
+    if feature == 'All':
+        print ('Apply scaling for all features.')
+        if scaler == 'MinMaxScaler':
+            scaled_data = MinMaxScaler().fit_transform(data)
+        
+        elif scaler == 'StandardScaler':
+            scaled_data = StandardScaler().fit_transform(data)
+            
+        elif scaler == 'MaxAbsScaler':
+            scaled_data = MaxAbsScaler().fit_transform(data)
+    else: #only support single str feature at the moment
+        print ('Apply scaling for single feature {}'.format(feature))
+        scaled_data = data.copy()
+        
+        if scaler == 'MinMaxScaler':
+            scaled_data[feature] = MinMaxScaler().fit_transform(data[feature].values.reshape(-1,1))
+            
+        elif scaler == 'StandardScaler':
+            scaled_data[feature] = StandardScaler().fit_transform(data[feature].values.reshape(-1,1))
+            
+        elif scaler == 'MaxAbsScaler':
+            scaled_data[feature] = MaxAbsScaler().fit_transform(data[feature].values.reshape(-1,1))
+
+        
     return scaled_data
 
 
-def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, **params) -> Tuple[np.ndarray, Type]:
+def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, scaler: str = 'StandardScaler', feature: str = 'All', **params) -> Tuple[np.ndarray, Type]:
     '''
     Applies either UMAP or t-SNE dimensionality reduction algorithm 
     to the input data (with optional scaling) and returns the
@@ -121,9 +159,11 @@ def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, **params) -> T
             'invalid algorithm. Expected one of: %s' % algorithms)
 
     if scale:
-        data = scale_data(data)
+        data = scale_data(data, scaler, feature)
 
     reducer = algorithm(**params)
+
+    print ('\nData reduction using algorithm: {}....'.format(algorithm.__name__))
 
     if algorithm == UMAP:
         mapper = reducer.fit(data)
@@ -133,3 +173,15 @@ def embed_data(data: pd.DataFrame, algorithm, scale: bool = True, **params) -> T
         embedding = reducer.fit_transform(data)
 
     return embedding, mapper
+
+def _save_emdedding(embedding: np.ndarray, embedding_name: str = None, embedding_path: str = None):
+
+    np.savetxt(embedding_path + embedding_name + '.txt', embedding)
+    print('Embedding data saved. \n')
+    
+def _read_emdedding(embedding_name: str = None, embedding_path: str = None) -> np.ndarray:
+
+    embedding = np.loadtxt(embedding_path + embedding_name + '.txt')
+    print('Embedding data read. \n')
+        
+    return embedding
